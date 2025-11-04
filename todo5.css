@@ -1,0 +1,276 @@
+/* Extracted from todo5.php - CSS */
+/* --- minimal overrides to simplify overall look --- */
+body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji"; max-width: 760px; padding: 16px; background: #fafafa; }
+.container { background: #fff; padding: 16px; border-radius: 8px; border: 1px solid #eee; box-shadow: none; }
+h1 { color: #222; text-align: left; font-size: 22px; margin: 8px 0 16px; font-weight: 700; }
+h2 { font-size: 16px; margin: 16px 0 8px; color: #333; }
+.btn { padding: 8px 12px; font-size: 13px; border-radius: 6px; }
+.todo-item { background: #fff; padding: 12px; margin: 8px 0; border-radius: 6px; border: 1px solid #eee; border-left: 4px solid #4CAF50; }
+.todo-title { font-size: 16px; font-weight: 600; margin-bottom: 4px; color: #222; }
+.todo-description { color: #555; margin-bottom: 8px; }
+.todo-meta { font-size: 12px; color: #666; margin-bottom: 8px; }
+.todo-actions .btn { margin-right: 6px; padding: 6px 10px; font-size: 12px; }
+.toast-container { position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 9999; }
+.toast { background: #333; color: #fff; padding: 8px 12px; border-radius: 6px; font-size: 13px; }
+.toast .toast-actions { display: none; }
+.filters-form { margin: 12px 0 20px; display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; }
+.filters-form > div { flex: 1 1 180px; min-width: 180px; }
+.filters-actions { width: 100%; display: flex; gap: 8px; }
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #f5f5f5;
+}
+    
+.container {
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+    
+h1 {
+    color: #333;
+    text-align: center;
+    margin-bottom: 30px;
+}
+    
+.message {
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 5px;
+}
+    
+.error {
+    background-color: #ffebee;
+    color: #c62828;
+    border: 1px solid #ffcdd2;
+}
+    
+.success {
+    background-color: #e8f5e8;
+    color: #2e7d32;
+    border: 1px solid #c8e6c9;
+}
+    
+.form-group {
+    margin-bottom: 15px;
+}
+    
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #555;
+}
+    
+input, textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+    
+textarea {
+    height: 80px;
+    resize: vertical;
+}
+    
+.btn {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-right: 10px;
+}
+    
+.btn:hover {
+    background-color: #45a049;
+}
+    
+.btn-danger {
+    background-color: #f44336;
+}
+    
+.btn-danger:hover {
+    background-color: #da190b;
+}
+    
+.btn-warning {
+    background-color: #ff9800;
+}
+    
+.btn-warning:hover {
+    background-color: #e68900;
+}
+    
+.todo-list {
+    margin-top: 30px;
+}
+    
+.todo-item {
+    background: #f9f9f9;
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 5px;
+    border-left: 4px solid #4CAF50;
+}
+    
+.todo-item.completed {
+    border-left-color: #9e9e9e;
+    opacity: 0.7;
+}
+    
+.todo-item.completed .todo-title {
+    text-decoration: line-through;
+}
+    
+.todo-title {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #333;
+}
+    
+.todo-description {
+    color: #666;
+    margin-bottom: 10px;
+}
+    
+.todo-meta {
+    font-size: 12px;
+    color: #999;
+    margin-bottom: 10px;
+}
+    
+.todo-actions {
+    margin-top: 10px;
+}
+    
+.todo-actions .btn {
+    margin-right: 5px;
+    padding: 5px 10px;
+    font-size: 12px;
+}
+    
+.status-pending {
+    color: #ff9800;
+    font-weight: bold;
+}
+    
+.status-completed {
+    color: #4CAF50;
+    font-weight: bold;
+}
+/* 優先度バッジ */
+.priority-badge {
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+}
+.priority-high { background-color: #e53935; }
+.priority-medium { background-color: #1e88e5; }
+.priority-low { background-color: #43a047; }
+
+/* タグ */
+.tag-chip {
+    display: inline-block;
+    background: #e0f2f1;
+    color: #00695c;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    border: 1px solid #b2dfdb;
+}
+
+/* 締切のハイライト */
+.todo-item.overdue { border-left-color: #d32f2f; background: #fff5f5; }
+.todo-item.due-soon { border-left-color: #f9a825; background: #fffbe6; }
+    
+/* トースト通知（画面内通知） */
+.toast-container {
+    position: fixed;
+    left: 50%;
+    bottom: 20px;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 9999;
+    pointer-events: none;
+}
+.toast {
+    background: rgba(33, 33, 33, 0.96);
+    color: #fff;
+    padding: 12px 16px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    min-width: 260px;
+    max-width: min(92vw, 420px);
+    font-size: 14px;
+    line-height: 1.4;
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.toast .toast-title {
+    font-weight: 700;
+    margin-right: 6px;
+}
+.toast .toast-actions {
+    margin-left: auto;
+    display: flex;
+    gap: 6px;
+}
+.toast .toast-btn {
+    appearance: none;
+    -webkit-appearance: none;
+    border: 0;
+    border-radius: 6px;
+    padding: 6px 10px;
+    background: #ffc107;
+    color: #222;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* --- second block (overrides) --- */
+:root { --accent: #7c4dff; --accent-contrast:#fff; }
+body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans"; max-width: 760px; padding: 16px; background: #fafafa; }
+.container { background: #fff; padding: 16px; border-radius: 12px; border: 1px solid #eee; box-shadow: none; }
+h1 { color: #222; text-align: left; font-size: 22px; margin: 8px 0 16px; font-weight: 700; }
+h2 { font-size: 16px; margin: 16px 0 8px; color: #333; }
+.btn { padding: 8px 12px; font-size: 13px; border-radius: 999px; background: var(--accent); color: var(--accent-contrast); border: 1px solid transparent; }
+.btn:hover { filter: brightness(0.96); }
+.btn-outline { background: #fff; color: var(--accent); border-color: var(--accent); }
+.todo-item { background: #fff; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid #eee; border-left: 4px solid var(--accent); }
+.todo-title { font-size: 16px; font-weight: 700; margin-bottom: 4px; color: #222; }
+.todo-description { color: #555; margin-bottom: 8px; }
+.todo-meta { font-size: 12px; color: #666; margin-bottom: 8px; }
+.todo-actions .btn { margin-right: 6px; padding: 6px 10px; font-size: 12px; }
+.priority-high { background-color: #ff5252; }
+.priority-medium { background-color: #42a5f5; }
+.priority-low { background-color: #66bb6a; }
+.tag-chip { background: #ede7f6; color: #4527a0; border-color: #d1c4e9; }
+.toast-container { position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 9999; }
+.toast { background: #333; color: #fff; padding: 8px 12px; border-radius: 10px; font-size: 13px; box-shadow: none; min-width: 0; max-width: 92vw; }
+.toast .toast-actions { display: none; }
+.filters-form { margin: 8px 0 0; display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; }
+.filters-form > div { flex: 1 1 180px; min-width: 180px; }
+.filters-actions { width: 100%; display: flex; gap: 8px; margin-top: 8px; }
+.toolbar { display:flex; justify-content:flex-end; margin: 8px 0 12px; }
+.modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.35); display: none; align-items: center; justify-content: center; padding: 16px; z-index: 9998; }
+.modal-sheet { background: #fff; border: 1px solid #eee; border-radius: 12px; width: min(720px, 92vw); max-height: 90vh; overflow: auto; padding: 16px; }
+.modal-header { display:flex; align-items:center; justify-content: space-between; margin-bottom: 8px; }
+.modal-header h3 { margin: 0; font-size: 16px; }
+.modal-close { background: transparent; border: none; font-size: 20px; line-height: 1; cursor: pointer; }
