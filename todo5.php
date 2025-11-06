@@ -1,5 +1,5 @@
 <?php
-// エントリーポイント: ロジックとビューを分離
+// エントリーポイント（SQLite版）
 require_once __DIR__ . '/todo5_logic.php';
 include __DIR__ . '/todo5_view.php';
 

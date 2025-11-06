@@ -1,68 +1,52 @@
 <?php
 /**
- * ToDoアプリケーション - ロジック
- * 基本的なCRUD操作（Create, Read, Update, Delete）と一覧取得
+ * ToDoアプリケーション - ロジック (SQLite版)
+ * CRUD + 一覧取得（検索/フィルタ/ソート対応）
  */
+require_once __DIR__ . '/config/database.php';
 
-// データベース接続設定を読み込み
-require_once __DIR__ . '/../config/database.php';
-
-
-
-
-// エラーメッセージ用の変数
+// メッセージ
 $error_message = '';
 $success_message = '';
 
-// 簡易マイグレーション: 必要な列が無ければ追加（priority, due_date, tags）
-try {
-    // priority
-    $stmt = $pdo->prepare("SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'todos' AND COLUMN_NAME = 'priority'");
-    $stmt->execute();
-    if ((int)$stmt->fetchColumn() === 0) {
-        $pdo->exec("ALTER TABLE todos ADD COLUMN priority ENUM('high','medium','low') NOT NULL DEFAULT 'medium'");
-    }
-    // due_date
-    $stmt = $pdo->prepare("SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'todos' AND COLUMN_NAME = 'due_date'");
-    $stmt->execute();
-    if ((int)$stmt->fetchColumn() === 0) {
-        $pdo->exec("ALTER TABLE todos ADD COLUMN due_date DATETIME NULL DEFAULT NULL");
-    }
-    // tags
-    $stmt = $pdo->prepare("SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'todos' AND COLUMN_NAME = 'tags'");
-    $stmt->execute();
-    if ((int)$stmt->fetchColumn() === 0) {
-        $pdo->exec("ALTER TABLE todos ADD COLUMN tags VARCHAR(255) NULL DEFAULT NULL");
-    }
-} catch (PDOException $e) {
-    // マイグレーション失敗は致命的にせず、メッセージだけ保持
-    $error_message = $error_message ?: ('スキーマ更新で警告: ' . $e->getMessage());
+// 日時文字列正規化（YYYY-MM-DDTHH:MM -> "YYYY-MM-DD HH:MM:SS"）
+function norm_datetime(?string $s): ?string {
+    if ($s === null) return null;
+    $s = trim($s);
+    if ($s === '') return null;
+    $s = str_replace('T', ' ', $s);
+    if (preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/', $s)) $s .= ':00';
+    return $s;
 }
 
-/*これより下がユーザーリクエストに対する処理*/
-// POSTリクエストの処理
+/* ユーザーリクエスト処理 */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
-    
     switch ($action) {
         case 'create':
-            // ToDoの作成
             $title = trim($_POST['title'] ?? '');
             $description = trim($_POST['description'] ?? '');
-            $reminder_date = $_POST['calculated_reminder_date'] ?? null;
-            // 新機能: 優先度/締切/タグ
             $priority = $_POST['priority'] ?? 'medium';
             if (!in_array($priority, ['high','medium','low'], true)) { $priority = 'medium'; }
-            $due_date = $_POST['due_date'] ?? null;
+            $due_date = norm_datetime($_POST['due_date'] ?? null);
             $tags = trim($_POST['tags'] ?? '');
-            // リマインド未指定で締切がある場合は、締切でリマインド
-            if ((empty($reminder_date) || $reminder_date === '') && !empty($due_date)) {
-                $reminder_date = $due_date;
-            }
-            if (!empty($title)) {
+            $reminder_date = norm_datetime($_POST['calculated_reminder_date'] ?? null);
+            if (!$reminder_date && $due_date) $reminder_date = $due_date;
+
+            if ($title !== '') {
                 try {
-                    $stmt = $pdo->prepare("INSERT INTO todos (title, description, reminder_date, priority, due_date, tags) VALUES (?, ?, ?, ?, ?, ?)");
-                    $stmt->execute([$title, $description, $reminder_date ?: null, $priority, ($due_date ?: null), ($tags !== '' ? $tags : null)]);
+                    $stmt = $pdo->prepare("
+                        INSERT INTO todos (title, description, reminder_date, priority, due_date, tags)
+                        VALUES (?, ?, ?, ?, ?, ?)
+                    ");
+                    $stmt->execute([
+                        $title,
+                        $description,
+                        $reminder_date,
+                        $priority,
+                        $due_date,
+                        ($tags !== '' ? $tags : null)
+                    ]);
                     $success_message = "ToDoが正常に追加されました！";
                 } catch (PDOException $e) {
                     $error_message = "エラーが発生しました: " . $e->getMessage();
@@ -71,45 +55,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $error_message = "タイトルは必須です。";
             }
             break;
-            
+
         case 'update':
-            // ToDoの更新（指定されたフィールドのみ更新）
             $id = $_POST['id'] ?? '';
             $title = trim($_POST['title'] ?? '');
-            if (!empty($id) && !empty($title)) {
+            if ($id !== '' && $title !== '') {
                 try {
                     $set = ['title = ?'];
                     $params = [$title];
-                    // description は送信されている場合のみ変更
+
                     if (array_key_exists('description', $_POST)) {
                         $set[] = 'description = ?';
                         $params[] = trim((string)($_POST['description']));
                     }
-                    // reminder_date は calculated または reminder_date があれば更新
                     if (array_key_exists('calculated_reminder_date', $_POST) || array_key_exists('reminder_date', $_POST)) {
                         $reminder_input = $_POST['calculated_reminder_date'] ?? ($_POST['reminder_date'] ?? null);
                         $set[] = 'reminder_date = ?';
-                        $params[] = ($reminder_input === '' ? null : $reminder_input);
+                        $params[] = norm_datetime($reminder_input);
                     }
-                    // priority
                     if (array_key_exists('priority', $_POST)) {
                         $p = $_POST['priority'];
                         if (!in_array($p, ['high','medium','low'], true)) { $p = 'medium'; }
                         $set[] = 'priority = ?';
                         $params[] = $p;
                     }
-                    // due_date
                     if (array_key_exists('due_date', $_POST)) {
-                        $d = $_POST['due_date'];
+                        $d = norm_datetime($_POST['due_date']);
                         $set[] = 'due_date = ?';
-                        $params[] = ($d === '' ? null : $d);
+                        $params[] = $d;
                     }
-                    // tags
                     if (array_key_exists('tags', $_POST)) {
                         $t = trim((string)$_POST['tags']);
                         $set[] = 'tags = ?';
                         $params[] = ($t === '' ? null : $t);
                     }
+
                     $params[] = $id;
                     $sql = 'UPDATE todos SET ' . implode(', ', $set) . ' WHERE id = ?';
                     $stmt = $pdo->prepare($sql);
@@ -122,12 +102,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $error_message = "IDとタイトルは必須です。";
             }
             break;
-            
+
         case 'delete':
-            // ToDoの削除
             $id = $_POST['id'] ?? '';
-            
-            if (!empty($id)) {
+            if ($id !== '') {
                 try {
                     $stmt = $pdo->prepare("DELETE FROM todos WHERE id = ?");
                     $stmt->execute([$id]);
@@ -139,21 +117,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $error_message = "IDが指定されていません。";
             }
             break;
-            
+
         case 'toggle_status':
-            // ステータスの切り替え
             $id = $_POST['id'] ?? '';
-            
-            if (!empty($id)) {
+            if ($id !== '') {
                 try {
-                    // 現在のステータスを取得
                     $stmt = $pdo->prepare("SELECT status FROM todos WHERE id = ?");
                     $stmt->execute([$id]);
                     $current_status = $stmt->fetchColumn();
-                    
-                    // ステータスを切り替え
                     $new_status = ($current_status === 'pending') ? 'completed' : 'pending';
-                    
                     $stmt = $pdo->prepare("UPDATE todos SET status = ? WHERE id = ?");
                     $stmt->execute([$new_status, $id]);
                     $success_message = "ステータスが更新されました！";
@@ -165,12 +137,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// ToDo一覧を取得（検索・フィルタ・ソート対応）
+/* 一覧取得（検索・フィルタ・ソート） */
 try {
     $q = trim($_GET['q'] ?? '');
     $priorityFilter = $_GET['priority'] ?? '';
     $tagFilter = trim($_GET['tag'] ?? '');
     $sort = $_GET['sort'] ?? 'created_desc';
+
     $conditions = [];
     $params = [];
     if ($q !== '') {
@@ -182,17 +155,18 @@ try {
         $params[] = $priorityFilter;
     }
     if ($tagFilter !== '') {
-        $conditions[] = "tags LIKE ?"; // 簡易一致
+        $conditions[] = "tags LIKE ?";
         $params[] = "%$tagFilter%";
     }
     $where = $conditions ? ('WHERE ' . implode(' AND ', $conditions)) : '';
-    // ソート
+
     switch ($sort) {
         case 'due_asc':
-            $order = "ORDER BY due_date IS NULL ASC, due_date ASC";
+            $order = "ORDER BY (due_date IS NULL) ASC, due_date ASC";
             break;
         case 'priority_desc':
-            $order = "ORDER BY FIELD(priority,'high','medium','low'), created_at DESC";
+            // high > medium > low
+            $order = "ORDER BY CASE priority WHEN 'high' THEN 1 WHEN 'medium' THEN 2 WHEN 'low' THEN 3 ELSE 4 END ASC, created_at DESC";
             break;
         case 'created_asc':
             $order = "ORDER BY created_at ASC";
@@ -201,6 +175,7 @@ try {
         default:
             $order = "ORDER BY created_at DESC";
     }
+
     $sql = "SELECT * FROM todos $where $order";
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
