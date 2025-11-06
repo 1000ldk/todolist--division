@@ -7,6 +7,9 @@
 // データベース接続設定を読み込み
 require_once __DIR__ . '/../config/database.php';
 
+
+
+
 // エラーメッセージ用の変数
 $error_message = '';
 $success_message = '';
@@ -36,6 +39,7 @@ try {
     $error_message = $error_message ?: ('スキーマ更新で警告: ' . $e->getMessage());
 }
 
+/*これより下がユーザーリクエストに対する処理*/
 // POSTリクエストの処理
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
