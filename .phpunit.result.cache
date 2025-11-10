@@ -1,1 +1,1 @@
-{"version":1,"defects":[],"times":{"HelloTest::testHelloWorld":0.007}}
+{"version":2,"defects":{"Tests\\EndpointTest::testTodoListEndpoint":8,"HttpServerTest::testIndexPage":7,"HttpServerTest::testTodoPage":7,"HttpServerTest::testApiEndpoint":7,"HttpServerTest::testTodoPageLoads":7},"times":{"HttpServerTest::testIndexPage":1.302,"HttpServerTest::testTodoPage":0.037,"HttpServerTest::testApiEndpoint":0.023,"HttpServerTest::testTodoPageLoads":0.029,"HttpServerTest::testTodoPageHasTitle":0.01}}

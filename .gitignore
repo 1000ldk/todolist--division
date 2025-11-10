@@ -1,5 +1,5 @@
 /.DS_Store
 /todo.sqlite
 /vendor/
-/tests/
-/
+/tests/*
+!/tests/HttpServerTest.php

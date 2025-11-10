@@ -4,7 +4,8 @@ require_once __DIR__ . '/todo5_logic.php';
 include __DIR__ . '/todo5_view.php';
 
 // データベース接続設定を読み込み
-require_once '../config/database.php';
+//require_once '../config/database.php';
+require_once __DIR__ . '/config/database.php';
 
 // エラーメッセージ用の変数
 $error_message = '';
