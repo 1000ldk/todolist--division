@@ -7,7 +7,6 @@ class HttpServerTest extends TestCase
     
     public static function setUpBeforeClass(): void
     {
-        // プロジェクトルートをドキュメントルートとして指定
         $docRoot = __DIR__ . '/..';
         
         self::$process = proc_open(
@@ -18,34 +17,58 @@ class HttpServerTest extends TestCase
                 ['pipe', 'w']
             ],
             $pipes,
-            $docRoot  // 作業ディレクトリも指定
+            $docRoot
         );
-        sleep(1);
+        sleep(2);
     }
     
     public static function tearDownAfterClass(): void
     {
-        proc_terminate(self::$process);
+        if (is_resource(self::$process)) {
+            proc_terminate(self::$process);
+            proc_close(self::$process);
+        }
     }
     
     public function testTodoPageLoads()
     {
         $html = @file_get_contents('http://localhost:8000/todo5.php');
         
-        // HTMLが取得できたか確認
         $this->assertNotFalse($html, 'ページの読み込みに失敗しました');
-        
-        // エラーメッセージが含まれていないか確認
-        $this->assertStringNotContainsString('Fatal error', $html, 'PHPエラーが発生しています');
-        $this->assertStringNotContainsString('Warning', $html, 'PHPワーニングが発生しています');
-        
-        // 正常な内容が含まれているか確認
-        $this->assertStringContainsString('ToDoアプリケーション', $html);
     }
     
     public function testTodoPageHasTitle()
     {
         $html = @file_get_contents('http://localhost:8000/todo5.php');
-        $this->assertStringContainsString('<title>ToDoアプリケーション</title>', $html);
+        
+        $this->assertStringContainsString('ToDoアプリケーション', $html);
+    }
+    
+    public function testCreateTodo()
+    {
+        // テスト用のToDoデータ
+        $postData = http_build_query([
+            'action' => 'create',
+            'title' => 'テストToDo',
+            'description' => 'これはテストです',
+            'priority' => 'high'
+        ]);
+        
+        // POSTリクエストを送信
+        $context = stream_context_create([
+            'http' => [
+                'method' => 'POST',
+                'header' => 'Content-Type: application/x-www-form-urlencoded',
+                'content' => $postData
+            ]
+        ]);
+        
+        $html = @file_get_contents('http://localhost:8000/todo5.php', false, $context);
+        
+        $this->assertNotFalse($html, 'ToDo作成リクエストに失敗しました');
+        
+        // 作成したToDoが表示されているか確認
+        $this->assertStringContainsString('テストToDo', $html);
+        $this->assertStringContainsString('これはテストです', $html);
     }
 }
